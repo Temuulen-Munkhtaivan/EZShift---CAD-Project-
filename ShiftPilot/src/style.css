@@ -292,3 +292,78 @@ li small {
     grid-column: 1;
   }
 }
+
+/* Keep Add Employee at its natural height */
+.add-employee-panel{
+  align-self: start;
+}
+
+/* Employee list grows until the maximum height */
+.employee-list-panel {
+  max-height: 420px;
+  overflow-y: auto;
+  align-self: start;
+}
+
+/* Optional: make the scrollbar look cleaner */
+.employee-list-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.employee-list-panel::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.employee-list-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+/* Dashboard layout */
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  grid-template-areas:
+    "header header"
+    "add-employee employees"
+    "add-shift employees"
+    "assigned assigned";
+  gap: 24px;
+  align-items: start;
+}
+
+.container > header {
+  grid-area: header;
+}
+
+.container > .add-employee-panel {
+  grid-area: add-employee;
+}
+
+.container > .employee-list-panel {
+  grid-area: employees;
+  max-height: 750px;
+  overflow-y: auto;
+}
+
+.container > .add-shift-panel {
+  grid-area: add-shift;
+}
+
+.container > .assigned-shifts-panel {
+  grid-area: assigned;
+}
+
+/* Mobile layout */
+@media (max-width: 800px) {
+  .container {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "add-employee"
+      "employees"
+      "add-shift"
+      "assigned";
+  }
+}

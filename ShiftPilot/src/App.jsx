@@ -94,7 +94,7 @@ function App() {
         <p>A simple place to manage your team.</p>
       </header>
 
-      <section className="panel">
+      <section className="panel add-employee-panel">
         <h2>Add an employee</h2>
 
         <form onSubmit={addEmployee}>
@@ -114,7 +114,7 @@ function App() {
         </form>
       </section>
 
-      <section className="panel">
+      <section className="panel employee-list-panel">
         <h2>Employees ({employees.length})</h2>
 
         <ul>
@@ -137,7 +137,7 @@ function App() {
         </ul>
       </section>
 
-      <section className="panel">
+      <section className="panel add-shift-panel">
         <h2>Add a Shift</h2>
 
         <form onSubmit={addShift}>
@@ -184,7 +184,7 @@ function App() {
       </section>
 
 
-      <section className="panel">
+      <section className="panel assigned-shifts-panel">
         <h2>Assigned Shifts ({shifts.length})</h2>
 
         {shifts.length === 0 ? (
