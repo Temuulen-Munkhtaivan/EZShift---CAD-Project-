@@ -5,6 +5,8 @@ A small web app for managing staff. This is the first version of my Cloud Applic
 ## What works so far
 - See a list of employees
 - Add an employee with a name and role
+- Edit employee status 
+- Displaying employee shifts
 
 The data is only stored in the page for now. Refreshing resets the list.
 
