@@ -1,4 +1,4 @@
-# ShiftPilot
+# EZShift
 
 A small web app for managing staff. This is the first version of my Cloud Application Development project.
 
