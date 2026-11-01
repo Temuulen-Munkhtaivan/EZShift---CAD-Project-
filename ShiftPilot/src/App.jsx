@@ -90,8 +90,8 @@ function App() {
   return (
     <main className="container">
       <header>
-        <h1>ShiftPilot</h1>
-        <p>A simple place to manage your team.</p>
+        <h1>EZShift</h1>
+        <p>A simple way to manage employees and work shifts.</p>
       </header>
 
       <section className="panel add-employee-panel">
