@@ -182,6 +182,36 @@ function App() {
         <p>{message}</p>
         <p>Total shifts: {shifts.length}</p>
       </section>
+
+
+      <section className="panel">
+        <h2>Assigned Shifts ({shifts.length})</h2>
+
+        {shifts.length === 0 ? (
+          <p>No shifts added yet.</p>
+        ) : (
+          <ul>
+            {shifts.map((shift) => {
+              const employee = employees.find(
+                (emp) => emp.id === shift.employeeId
+              );
+
+              return (
+                <li key={shift.id}>
+                  <span>
+                    {employee ? employee.name : 'Deleted employee'}
+                  </span>
+
+                  <small>
+                    {shift.date} | {shift.startTime} - {shift.endTime}
+                  </small>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
     </main>
   );
 }
