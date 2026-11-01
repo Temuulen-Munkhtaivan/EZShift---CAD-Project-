@@ -21,7 +21,6 @@ npm run dev
 4. Open the local address shown in the terminal.
 
 ## Next steps
-- Add shifts to the interface
 - Build a separate backend API
 - Connect a database
 - Add scheduling checks, tests, and cloud deployment
