@@ -67,6 +67,20 @@ function App() {
       setMessage('End time must be after start time.');
       return;
     }
+    
+    const conflict = shifts.some((shift) => {
+      return (
+        shift.employeeId === Number(employeeId) &&
+        shift.date === shiftDate &&
+        startTime < shift.endTime &&
+        endTime > shift.startTime
+      );
+    });
+
+    if (conflict) {
+      setMessage('Shift conflict! Employee already has a shift during this time.');
+      return;
+    }
 
     const newShift = {
       id: Date.now(),
