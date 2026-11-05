@@ -22,3 +22,13 @@ def test_get_employees():
         {"id": 1, "name": "Alex", "role": "Barista"},
         {"id": 2, "name": "Sam", "role": "Waiter"}
     ]
+
+
+def test_add_employee():
+    response = client.post(
+        "/employees",
+        json={"name": "Jamie", "role": "Chef"}
+    )
+
+    assert response.status_code == 201
+    assert response.json()["name"] == "Jamie"
