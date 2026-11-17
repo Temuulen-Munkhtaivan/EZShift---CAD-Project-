@@ -66,3 +66,19 @@ def update_employee(employee_id: int, updated_employee: EmployeeCreate):
         status_code=404,
         detail="Employee not found"
     )
+
+@app.delete("/employees/{employee_id}")
+def delete_employee(employee_id: int):
+
+    for employee in employees:
+        if employee["id"] == employee_id:
+            employees.remove(employee)
+
+            return {
+                "message": "Employee deleted successfully"
+            }
+
+    raise HTTPException(
+        status_code=404,
+        detail="Employee not found"
+    )

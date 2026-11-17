@@ -52,3 +52,32 @@ def test_update_employee():
     assert response.status_code == 200
     assert response.json()["name"] == "Jamie"
     assert response.json()["role"] == "Manager"
+
+def test_delete_employee():
+    # Create an employee
+    response = client.post(
+        "/employees",
+        json={"name": "Chris", "role": "Waiter"}
+    )
+
+    employee_id = response.json()["id"]
+
+    # Delete the employee
+    response = client.delete(f"/employees/{employee_id}")
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Employee deleted successfully"
+
+    # Check that the employee is gone
+    response = client.get("/employees")
+
+    assert all(
+        emp["id"] != employee_id
+        for emp in response.json()
+    )
+
+
+def test_delete_nonexistent_employee():
+    response = client.delete("/employees/999999")
+
+    assert response.status_code == 404
