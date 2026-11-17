@@ -32,3 +32,23 @@ def test_add_employee():
 
     assert response.status_code == 201
     assert response.json()["name"] == "Jamie"
+    
+
+def test_update_employee():
+    # Create an employee first
+    response = client.post(
+        "/employees",
+        json={"name": "Jamie", "role": "Chef"}
+    )
+
+    employee_id = response.json()["id"]
+
+    # Update the employee
+    response = client.put(
+        f"/employees/{employee_id}",
+        json={"name": "Jamie", "role": "Manager"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Jamie"
+    assert response.json()["role"] == "Manager"
