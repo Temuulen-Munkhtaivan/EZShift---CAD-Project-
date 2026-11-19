@@ -1,6 +1,12 @@
 from fastapi.testclient import TestClient
 from main import app
 
+import main
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from database import Base, Employee
+
 client = TestClient(app)
 
 
@@ -14,15 +20,32 @@ def test_health():
     }
 
 
-def test_get_employees():
+def test_get_employees(tmp_path, monkeypatch):
+
+    # Create a temporary database
+    test_engine = create_engine(
+        f"sqlite:///{tmp_path / 'employees.db'}",
+        connect_args={"check_same_thread": False}
+    )
+
+    Base.metadata.create_all(test_engine)
+
+    # Add a test employee
+    with Session(test_engine) as session:
+        session.add(Employee(name="Taylor", role="Chef"))
+        session.commit()
+
+    # Temporarily use our test database
+    monkeypatch.setattr(main, "engine", test_engine)
+
     response = client.get("/employees")
 
     assert response.status_code == 200
     assert response.json() == [
-        {"id": 1, "name": "Alex", "role": "Barista"},
-        {"id": 2, "name": "Sam", "role": "Waiter"}
+        {"id": 1, "name": "Taylor", "role": "Chef"}
     ]
 
+    test_engine.dispose()
 
 def test_add_employee():
     response = client.post(
@@ -68,13 +91,11 @@ def test_delete_employee():
     assert response.status_code == 200
     assert response.json()["message"] == "Employee deleted successfully"
 
-    # Check that the employee is gone
-    response = client.get("/employees")
+    # Try deleting the same employee again
+    response = client.delete(f"/employees/{employee_id}")
 
-    assert all(
-        emp["id"] != employee_id
-        for emp in response.json()
-    )
+    assert response.status_code == 404
+    
 
 
 def test_delete_nonexistent_employee():

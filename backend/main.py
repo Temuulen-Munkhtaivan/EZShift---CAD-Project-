@@ -1,10 +1,15 @@
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
-from fastapi import FastAPI
-from fastapi import FastAPI, HTTPException
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from database import Employee, engine
 
 app = FastAPI(title="EZShift API")
 
+def get_db():
+    with Session(engine) as session:
+        yield session
 class EmployeeCreate(BaseModel):
     name: str
     role: str
@@ -23,10 +28,21 @@ def check_health():
         "application": "EZShift"
     }
 
-
 @app.get("/employees")
-def get_employees():
-    return employees
+def get_employees(db: Session = Depends(get_db)):
+
+    employees_db = db.scalars(
+        select(Employee).order_by(Employee.id)
+    ).all()
+
+    return [
+        {
+            "id": employee.id,
+            "name": employee.name,
+            "role": employee.role
+        }
+        for employee in employees_db
+    ]
 
 @app.post("/employees", status_code=201)
 def add_employee(employee: EmployeeCreate):
