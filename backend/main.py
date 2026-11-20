@@ -45,22 +45,29 @@ def get_employees(db: Session = Depends(get_db)):
     ]
 
 @app.post("/employees", status_code=201)
-def add_employee(employee: EmployeeCreate):
+def add_employee(employee: EmployeeCreate, db: Session = Depends(get_db)):
+
     if not employee.name.strip() or not employee.role.strip():
         raise HTTPException(
             status_code=400,
             detail="Name and role are required"
         )
 
-    new_employee = {
-        "id": max(e["id"] for e in employees) + 1,
-        "name": employee.name.strip(),
-        "role": employee.role.strip()
+    new_employee = Employee(
+        name=employee.name.strip(),
+        role=employee.role.strip()
+    )
+
+    db.add(new_employee)
+    db.commit()
+    db.refresh(new_employee)
+
+    return {
+        "id": new_employee.id,
+        "name": new_employee.name,
+        "role": new_employee.role
     }
-
-    employees.append(new_employee)
-    return new_employee
-
+    
 @app.put("/employees/{employee_id}")
 def update_employee(employee_id: int, updated_employee: EmployeeCreate):
 
