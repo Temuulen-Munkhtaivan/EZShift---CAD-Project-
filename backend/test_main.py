@@ -82,21 +82,46 @@ def test_get_employees(tmp_path, monkeypatch):
 
     test_engine.dispose()
         
-def test_update_employee(monkeypatch):
+def test_update_employee(tmp_path, monkeypatch):
 
-    # Set up an employee in the old Python list
-    monkeypatch.setattr(main, "employees", [
-        {"id": 15, "name": "Jamie", "role": "Chef"}
-    ])
+    # Create a temporary database
+    test_engine = create_engine(
+        f"sqlite:///{tmp_path / 'update_test.db'}",
+        connect_args={"check_same_thread": False}
+    )
 
+    Base.metadata.create_all(test_engine)
+
+    # Add an employee to the database
+    with Session(test_engine) as session:
+        employee = Employee(name="Jamie", role="Chef")
+        session.add(employee)
+        session.commit()
+        session.refresh(employee)
+
+        employee_id = employee.id
+
+    # Use our test database
+    monkeypatch.setattr(main, "engine", test_engine)
+
+    # Update the employee through FastAPI
     response = client.put(
-        "/employees/15",
+        f"/employees/{employee_id}",
         json={"name": "Jamie", "role": "Manager"}
     )
 
     assert response.status_code == 200
-    assert response.json()["name"] == "Jamie"
     assert response.json()["role"] == "Manager"
+
+    # Check that SQLite saved the changes
+    with Session(test_engine) as session:
+        updated_employee = session.get(Employee, employee_id)
+
+        assert updated_employee is not None
+        assert updated_employee.name == "Jamie"
+        assert updated_employee.role == "Manager"
+
+    test_engine.dispose()
 
 def test_delete_employee(monkeypatch):
 

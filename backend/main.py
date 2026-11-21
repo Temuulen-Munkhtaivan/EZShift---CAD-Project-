@@ -69,26 +69,41 @@ def add_employee(employee: EmployeeCreate, db: Session = Depends(get_db)):
     }
     
 @app.put("/employees/{employee_id}")
-def update_employee(employee_id: int, updated_employee: EmployeeCreate):
+def update_employee(
+    employee_id: int,
+    updated_employee: EmployeeCreate,
+    db: Session = Depends(get_db)
+):
 
-    for employee in employees:
-        if employee["id"] == employee_id:
+    # Validate the information
+    if not updated_employee.name.strip() or not updated_employee.role.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Name and role are required"
+        )
 
-            if not updated_employee.name.strip() or not updated_employee.role.strip():
-                raise HTTPException(
-                    status_code=400,
-                    detail="Name and role are required"
-                )
+    # Find the employee in SQLite
+    employee = db.get(Employee, employee_id)
 
-            employee["name"] = updated_employee.name.strip()
-            employee["role"] = updated_employee.role.strip()
+    if employee is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
 
-            return employee
+    # Update employee details
+    employee.name = updated_employee.name.strip()
+    employee.role = updated_employee.role.strip()
 
-    raise HTTPException(
-        status_code=404,
-        detail="Employee not found"
-    )
+    # Save changes
+    db.commit()
+    db.refresh(employee)
+
+    return {
+        "id": employee.id,
+        "name": employee.name,
+        "role": employee.role
+    }
 
 @app.delete("/employees/{employee_id}")
 def delete_employee(employee_id: int):
