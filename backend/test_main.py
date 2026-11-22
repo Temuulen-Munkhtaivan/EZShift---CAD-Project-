@@ -123,24 +123,59 @@ def test_update_employee(tmp_path, monkeypatch):
 
     test_engine.dispose()
 
-def test_delete_employee(monkeypatch):
+def test_delete_employee(tmp_path, monkeypatch):
 
-    # Set up an employee in the old Python list
-    monkeypatch.setattr(main, "employees", [
-        {"id": 15, "name": "Chris", "role": "Waiter"}
-    ])
+    # Create a temporary database
+    test_engine = create_engine(
+        f"sqlite:///{tmp_path / 'delete_test.db'}",
+        connect_args={"check_same_thread": False}
+    )
 
-    response = client.delete("/employees/15")
+    Base.metadata.create_all(test_engine)
+
+    # Add an employee to the database
+    with Session(test_engine) as session:
+        employee = Employee(name="Chris", role="Waiter")
+
+        session.add(employee)
+        session.commit()
+        session.refresh(employee)
+
+        employee_id = employee.id
+
+    # Use the temporary database
+    monkeypatch.setattr(main, "engine", test_engine)
+
+    # Delete the employee using the API
+    response = client.delete(f"/employees/{employee_id}")
 
     assert response.status_code == 200
     assert response.json()["message"] == "Employee deleted successfully"
 
-    # Check the employee is gone
-    response = client.delete("/employees/15")
+    # Check the employee was removed from SQLite
+    with Session(test_engine) as session:
+        deleted_employee = session.get(Employee, employee_id)
 
-    assert response.status_code == 404
+        assert deleted_employee is None
+
+    test_engine.dispose()
     
-def test_delete_nonexistent_employee():
+def test_delete_nonexistent_employee(tmp_path, monkeypatch):
+
+    # Create a temporary database
+    test_engine = create_engine(
+        f"sqlite:///{tmp_path / 'missing_employee_test.db'}",
+        connect_args={"check_same_thread": False}
+    )
+
+    Base.metadata.create_all(test_engine)
+
+    # Use the temporary database
+    monkeypatch.setattr(main, "engine", test_engine)
+
+    # Try deleting an employee that doesn't exist
     response = client.delete("/employees/999999")
 
     assert response.status_code == 404
+
+    test_engine.dispose()
