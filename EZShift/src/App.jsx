@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function App() {
   // Employee information
-  const [employees, setEmployees] = useState([
-    { id: 1, name: 'Alex', role: 'Barista' },
-    { id: 2, name: 'Sam', role: 'Waiter' },
-  ]);
+const [employees, setEmployees] = useState([]);
+
+useEffect(() => {
+  fetch('http://127.0.0.1:8000/employees')
+    .then((response) => response.json())
+    .then((data) => setEmployees(data))
+    .catch((error) => console.error('Error loading employees:', error));
+}, []);
 
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
