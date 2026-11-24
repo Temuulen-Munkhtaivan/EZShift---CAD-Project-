@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 
 function App() {
   // Employee information
-const [employees, setEmployees] = useState([]);
+  const [employees, setEmployees] = useState([]);
 
-useEffect(() => {
-  fetch('http://127.0.0.1:8000/employees')
-    .then((response) => response.json())
-    .then((data) => setEmployees(data))
-    .catch((error) => console.error('Error loading employees:', error));
-}, []);
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/employees')
+      .then((response) => response.json())
+      .then((data) => setEmployees(data))
+      .catch((error) => console.error('Error loading employees:', error));
+  }, []);
 
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
@@ -22,20 +22,38 @@ useEffect(() => {
   const [endTime, setEndTime] = useState('');
   const [message, setMessage] = useState('');
 
-  function addEmployee(event) {
+  async function addEmployee(event) {
     event.preventDefault();
 
     if (!name.trim() || !role.trim()) return;
 
-    const employee = {
-      id: Date.now(),
-      name: name.trim(),
-      role: role.trim(),
-    };
+    try {
+      const response = await fetch('http://127.0.0.1:8000/employees', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          role: role.trim()
+        })
+      });
 
-    setEmployees([...employees, employee]);
-    setName('');
-    setRole('');
+      if (!response.ok) {
+        throw new Error('Failed to add employee');
+      }
+
+      const newEmployee = await response.json();
+
+      setEmployees((currentEmployees) => [...currentEmployees, newEmployee]);
+
+      setName('');
+      setRole('');
+
+    } catch (error) {
+      console.error('Error adding employee:', error);
+      alert('Could not add employee. Make sure the backend is running.');
+    }
   }
 
   function deleteEmployee(id) {
@@ -71,7 +89,7 @@ useEffect(() => {
       setMessage('End time must be after start time.');
       return;
     }
-    
+
     const conflict = shifts.some((shift) => {
       return (
         shift.employeeId === Number(employeeId) &&
