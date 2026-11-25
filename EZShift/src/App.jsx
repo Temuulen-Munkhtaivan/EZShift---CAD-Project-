@@ -60,8 +60,10 @@ function App() {
     setEmployees(employees.filter((employee) => employee.id !== id));
   }
 
-  function editEmployee(id) {
+  async function editEmployee(id) {
     const employee = employees.find((emp) => emp.id === id);
+
+    if (!employee) return;
 
     const newName = prompt('Enter new name:', employee.name);
     if (newName === null || !newName.trim()) return;
@@ -69,13 +71,37 @@ function App() {
     const newRole = prompt('Enter new role:', employee.role);
     if (newRole === null || !newRole.trim()) return;
 
-    setEmployees(
-      employees.map((emp) =>
-        emp.id === id
-          ? { ...emp, name: newName.trim(), role: newRole.trim() }
-          : emp
-      )
-    );
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/employees/${id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: newName.trim(),
+            role: newRole.trim()
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to update employee');
+      }
+
+      const updatedEmployee = await response.json();
+
+      setEmployees((currentEmployees) =>
+        currentEmployees.map((emp) =>
+          emp.id === id ? updatedEmployee : emp
+        )
+      );
+
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      alert('Could not update employee. Make sure the backend is running.');
+    }
   }
 
   function addShift(event) {
