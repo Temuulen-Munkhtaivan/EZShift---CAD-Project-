@@ -56,8 +56,37 @@ function App() {
     }
   }
 
-  function deleteEmployee(id) {
-    setEmployees(employees.filter((employee) => employee.id !== id));
+  async function deleteEmployee(id) {
+    const employee = employees.find((emp) => emp.id === id);
+
+    if (!employee) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${employee.name}?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/employees/${id}`,
+        {
+          method: 'DELETE'
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to delete employee');
+      }
+
+      setEmployees((currentEmployees) =>
+        currentEmployees.filter((emp) => emp.id !== id)
+      );
+
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      alert('Could not delete employee. Make sure the backend is running.');
+    }
   }
 
   async function editEmployee(id) {
