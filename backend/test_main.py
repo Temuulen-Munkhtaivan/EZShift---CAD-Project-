@@ -5,7 +5,7 @@ import main
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from database import Base, Employee
+from database import Base, Employee, Shift
 
 client = TestClient(app)
 
@@ -177,5 +177,55 @@ def test_delete_nonexistent_employee(tmp_path, monkeypatch):
     response = client.delete("/employees/999999")
 
     assert response.status_code == 404
+
+    test_engine.dispose()
+
+def test_get_shifts(tmp_path, monkeypatch):
+
+    # Create a temporary database
+    test_engine = create_engine(
+        f"sqlite:///{tmp_path / 'get_shifts_test.db'}",
+        connect_args={"check_same_thread": False}
+    )
+
+    Base.metadata.create_all(test_engine)
+
+    # Create an employee and a shift
+    with Session(test_engine) as session:
+        employee = Employee(name="Morgan", role="Chef")
+        session.add(employee)
+        session.flush()
+
+        employee_id = employee.id
+
+        shift = Shift(
+            employee_id=employee_id,
+            date="2026-11-28",
+            start_time="09:00",
+            end_time="17:00"
+        )
+
+        session.add(shift)
+        session.commit()
+
+        shift_id = shift.id
+
+    # Use our temporary database
+    monkeypatch.setattr(main, "engine", test_engine)
+
+    # Retrieve shifts using the API
+    response = client.get("/shifts")
+
+    assert response.status_code == 200
+
+    assert response.json() == [
+        {
+            "id": shift_id,
+            "employeeId": employee_id,
+            "date": "2026-11-28",
+            "startTime": "09:00",
+            "endTime": "17:00"
+        }
+    ]
 
     test_engine.dispose()

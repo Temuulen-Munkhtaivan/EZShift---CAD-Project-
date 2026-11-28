@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
-from database import Employee, engine
+from database import Employee, Shift ,engine
 
 app = FastAPI(title="EZShift API")
 app.add_middleware(
@@ -51,6 +51,24 @@ def get_employees(db: Session = Depends(get_db)):
             "role": employee.role
         }
         for employee in employees_db
+    ]
+    
+@app.get("/shifts")
+def get_shifts(db: Session = Depends(get_db)):
+
+    shifts_db = db.scalars(
+        select(Shift).order_by(Shift.id)
+    ).all()
+
+    return [
+        {
+            "id": shift.id,
+            "employeeId": shift.employee_id,
+            "date": shift.date,
+            "startTime": shift.start_time,
+            "endTime": shift.end_time
+        }
+        for shift in shifts_db
     ]
 
 @app.post("/employees", status_code=201)
